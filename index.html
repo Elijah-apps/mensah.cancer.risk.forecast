@@ -43,8 +43,8 @@
     <div class="info-panel">
         <h1 class="text-2xl font-bold mb-2">Global Cancer Risk Forecast</h1>
         <div class="mb-2">
-            <label for="continent-select" class="mr-2">Select Continent:</label>
-            <select id="continent-select" class="p-2 border rounded">
+            <label for="region-select" class="mr-2">Select Region:</label>
+            <select id="region-select" class="p-2 border rounded">
                 <option value="world">World</option>
                 <option value="africa">Africa</option>
                 <option value="asia">Asia</option>
@@ -80,15 +80,16 @@
     <script>
         // State management
         const state = {
-            currentContinent: 'world',
+            currentRegion: 'world',
             layerGroups: {},
+            markers: {},
         };
 
         // Initialize the map
         const map = L.map('map').setView([0, 0], 2);
 
-        // Continent coordinates and zoom levels
-        const continents = {
+        // Region coordinates and zoom levels
+        const regions = {
             'world': { center: [0, 0], zoom: 2 },
             'africa': { center: [0, 20], zoom: 3 },
             'asia': { center: [34, 100], zoom: 3 },
@@ -98,48 +99,75 @@
             'oceania': { center: [-25, 135], zoom: 4 }
         };
 
-        // Create layer groups for each continent
-        Object.keys(continents).forEach(continent => {
-            state.layerGroups[continent] = L.layerGroup().addTo(map);
+        // Tilemap sources
+        const tilemaps = {
+            'world': 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            'africa': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}',
+            'asia': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
+            'europe': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+            'north-america': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+            'south-america': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            'oceania': 'https://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}'
+        };
+
+        // Create layer groups and add tilemaps for each region
+        Object.keys(regions).forEach(region => {
+            state.layerGroups[region] = L.layerGroup();
+            L.tileLayer(tilemaps[region], {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(state.layerGroups[region]);
         });
 
-        // Add OpenStreetMap tile layer to the world layer group
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(state.layerGroups.world);
+        // Add the world layer group to the map initially
+        state.layerGroups.world.addTo(map);
 
-        // Add custom tile layers for each continent (placeholder - replace with real data)
-        const customTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-        Object.keys(continents).forEach(continent => {
-            if (continent !== 'world') {
-                L.tileLayer(customTileUrl, {
-                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-                }).addTo(state.layerGroups[continent]);
-            }
+        // Function to add markers
+        function addMarkers(region, markersData) {
+            state.markers[region] = [];
+            markersData.forEach(markerData => {
+                const marker = L.marker([markerData.lat, markerData.lon])
+                    .bindPopup(`<b>${markerData.name}</b><br>New cases: ${markerData.cases}<br>Common type: ${markerData.type}`);
+                state.markers[region].push(marker);
+                marker.addTo(state.layerGroups[region]);
+            });
+        }
+
+        // Add sample markers (replace with real data)
+        addMarkers('world', [
+            { name: 'Global HQ', lat: 0, lon: 0, cases: '19.3M', type: 'Lung' },
+        ]);
+        addMarkers('africa', [
+            { name: 'Cairo', lat: 30.0444, lon: 31.2357, cases: '0.2M', type: 'Liver' },
+            { name: 'Lagos', lat: 6.5244, lon: 3.3792, cases: '0.1M', type: 'Breast' },
+        ]);
+        addMarkers('asia', [
+            { name: 'Tokyo', lat: 35.6762, lon: 139.6503, cases: '0.5M', type: 'Stomach' },
+            { name: 'New Delhi', lat: 28.6139, lon: 77.2090, cases: '0.7M', type: 'Oral' },
+        ]);
+        // Add markers for other regions...
+
+        // Handle region selection
+        $('#region-select').on('change', function() {
+            const newRegion = $(this).val();
+            changeRegion(newRegion);
         });
 
-        // Handle continent selection
-        $('#continent-select').on('change', function() {
-            const newContinent = $(this).val();
-            changeContinent(newContinent);
-        });
-
-        function changeContinent(newContinent) {
-            // Hide all layer groups
-            Object.values(state.layerGroups).forEach(group => map.removeLayer(group));
+        function changeRegion(newRegion) {
+            // Remove current layer group
+            map.removeLayer(state.layerGroups[state.currentRegion]);
             
-            // Show selected continent's layer group
-            map.addLayer(state.layerGroups[newContinent]);
+            // Add new layer group
+            map.addLayer(state.layerGroups[newRegion]);
 
-            const { center, zoom } = continents[newContinent];
+            const { center, zoom } = regions[newRegion];
             map.setView(center, zoom);
             
-            state.currentContinent = newContinent;
-            updateData(newContinent);
+            state.currentRegion = newRegion;
+            updateData(newRegion);
         }
 
         // Function to update the bottom bar data
-        function updateData(continent) {
+        function updateData(region) {
             // Placeholder data - replace with real data in a production environment
             const data = {
                 'world': { cases: '19.3M', type: 'Lung', survival: '50%', impact: '$1.16T' },
@@ -151,10 +179,10 @@
                 'oceania': { cases: '0.3M', type: 'Melanoma', survival: '69%', impact: '$0.02T' }
             };
 
-            $('#new-cases').text(data[continent].cases);
-            $('#common-type').text(data[continent].type);
-            $('#survival-rate').text(data[continent].survival);
-            $('#economic-impact').text(data[continent].impact);
+            $('#new-cases').text(data[region].cases);
+            $('#common-type').text(data[region].type);
+            $('#survival-rate').text(data[region].survival);
+            $('#economic-impact').text(data[region].impact);
         }
 
         // Initial data update
