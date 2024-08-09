@@ -35,6 +35,9 @@
             z-index: 1001;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
         }
+        .tile-info {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -42,11 +45,7 @@
 
     <div class="info-panel">
         <h1 class="text-2xl font-bold mb-2">Mensah Global Cancer Risk Forecast</h1>
-        <center><small>With My Deep Learning Model
-<br>@ Huggingface
-
-
-        </small></center>
+        <center><small>With My Deep Learning Model<br>@ Huggingface</small></center>
         
         <div class="mb-2">
             <label for="region-select" class="mr-2">Select Region:</label>
@@ -64,19 +63,19 @@
     
     <div class="bottom-bar">
         <div class="flex justify-around items-center h-24 px-4">
-            <div class="text-center">
+            <div class="text-center tile-info">
                 <p class="text-sm font-semibold text-gray-600">Estimated New Cases</p>
                 <p class="text-lg font-bold text-red-600" id="new-cases">10M</p>
             </div>
-            <div class="text-center">
+            <div class="text-center tile-info">
                 <p class="text-sm font-semibold text-gray-600">Most Common Type</p>
                 <p class="text-lg font-bold text-orange-600" id="common-type">Lung</p>
             </div>
-            <div class="text-center">
+            <div class="text-center tile-info">
                 <p class="text-sm font-semibold text-gray-600">Survival Rate</p>
                 <p class="text-lg font-bold text-yellow-600" id="survival-rate">65%</p>
             </div>
-            <div class="text-center">
+            <div class="text-center tile-info">
                 <p class="text-sm font-semibold text-gray-600">Economic Impact</p>
                 <p class="text-lg font-bold text-green-600" id="economic-impact">$1.16T</p>
             </div>
@@ -150,7 +149,10 @@
             { name: 'Tokyo', lat: 35.6762, lon: 139.6503, cases: '0.5M', type: 'Stomach' },
             { name: 'New Delhi', lat: 28.6139, lon: 77.2090, cases: '0.7M', type: 'Oral' },
         ]);
-        // Add markers for other regions...
+        addMarkers('oceania', [
+            { name: 'Sydney', lat: -33.8688, lon: 151.2093, cases: '0.1M', type: 'Melanoma' },
+            { name: 'Auckland', lat: -36.8481, lon: 174.7626, cases: '0.05M', type: 'Skin' },
+        ]);
 
         // Handle region selection
         $('#region-select').on('change', function() {
@@ -174,25 +176,15 @@
 
         // Function to update the bottom bar data
         function updateData(region) {
-            // Placeholder data - replace with real data in a production environment
-            const data = {
-                'world': { cases: '19.3M', type: 'Lung', survival: '50%', impact: '$1.16T' },
-                'africa': { cases: '1.1M', type: 'Breast', survival: '43%', impact: '$0.08T' },
-                'asia': { cases: '9.5M', type: 'Lung', survival: '47%', impact: '$0.46T' },
-                'europe': { cases: '4.4M', type: 'Breast', survival: '55%', impact: '$0.31T' },
-                'north-america': { cases: '2.5M', type: 'Breast', survival: '67%', impact: '$0.22T' },
-                'south-america': { cases: '1.5M', type: 'Prostate', survival: '61%', impact: '$0.07T' },
-                'oceania': { cases: '0.3M', type: 'Melanoma', survival: '69%', impact: '$0.02T' }
-            };
-
-            $('#new-cases').text(data[region].cases);
-            $('#common-type').text(data[region].type);
-            $('#survival-rate').text(data[region].survival);
-            $('#economic-impact').text(data[region].impact);
+            // Example data update (replace with real data)
+            $('#new-cases').text('Updated Data');
+            $('#common-type').text('Updated Data');
+            $('#survival-rate').text('Updated Data');
+            $('#economic-impact').text('Updated Data');
         }
 
-        // Initial data update
-        updateData('world');
+        // Initialize map with default region
+        map.setView(regions.world.center, regions.world.zoom);
     </script>
 </body>
 </html>
